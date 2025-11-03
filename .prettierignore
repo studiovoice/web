@@ -1,0 +1,9 @@
+# Ignore dependencies
+node_modules/
+
+# Ignore configuration and lock files
+package-lock.json
+pnpm-lock.yaml
+
+# Build output
+.next/

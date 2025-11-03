@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VOICE Platform
 
-## Getting Started
+Open-source platform for VOICE
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Development:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Node.js
+- PNPM
+- Prettier (code formatting)
+- ESLint (code linting)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Website:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- TypeScript
+- Next.js (framework)
+- Tailwind CSS (styling)
 
-## Learn More
+Hosting:
 
-To learn more about Next.js, take a look at the following resources:
+TODO
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Systems overview
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+TODO
 
-## Deploy on Vercel
+## How to contribute
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+TODO
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Development setup
+
+TODO
+
+### Prerequisite
+
+TODO
+
+### Local development
+
+1. Install Node.js using a version manager like [`nvm`](https://github.com/nvm-sh/nvm) or [`fnm`](https://github.com/Schniz/fnm). Run `nvm install`/`fnm install` in the project directory to install and `nvm use`/`fnm use` to use the correct Node.js version. Alternatively see [nodejs.org](https://nodejs.org/en/download) for other options to download and install Node.js. You can check the required version in the `.nvmrc` file
+
+TODO
+
+## Production deployment
+
+TODO
