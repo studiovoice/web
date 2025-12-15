@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MediaItem } from "@/db/schema";
 import Geocoder from "@/components/Geocoder";
+import { Button } from "@/components/ui/button";
 import { env } from "@/env";
+
+type MediaItemWithUrl = MediaItem & { url: string };
 
 class CoordinateZoomControl {
   private container: HTMLDivElement;
@@ -54,7 +57,12 @@ export interface MediaMapProps {
   onMapDoubleClick: (location: { lat: number; lng: number }) => void;
   onMarkerClick: (
     id: string,
-    content: { title: string; description: string; contentUrl: string },
+    content: {
+      title: string;
+      description: string;
+      objectKey: string;
+      url: string;
+    },
   ) => void;
   setClearPreviewMarker: (clearMarkerFunction: () => void) => void;
   selectedMarkerId: string | null;
@@ -89,7 +97,9 @@ function MediaMap({
   const initialZoom = useRef(12);
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItemWithUrl[]>([]);
+  const [showSearchHere, setShowSearchHere] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 0,
     height: typeof window !== "undefined" ? window.innerHeight : 0,
@@ -115,6 +125,34 @@ function MediaMap({
   //   },
   //   [onMapDoubleClick],
   // );
+
+  // Fetch media items for given bounds
+  const fetchMediaItemsByBounds = useCallback(
+    async (bounds: mapboxgl.LngLatBounds) => {
+      setIsSearching(true);
+      try {
+        const north = bounds.getNorth();
+        const south = bounds.getSouth();
+        const east = bounds.getEast();
+        const west = bounds.getWest();
+
+        const response = await fetch(
+          `/api/media?north=${north}&south=${south}&east=${east}&west=${west}`,
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch media items");
+
+        const data = await response.json();
+        setMediaItems(data.items ?? []);
+        setShowSearchHere(false);
+      } catch (error) {
+        console.error("Error fetching media items:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [],
+  );
 
   // Initialize map
   useEffect(() => {
@@ -203,28 +241,56 @@ function MediaMap({
     controlAdded.current = true;
   }, [mapLoaded]);
 
-  // Fetch media items from Next.js API
-  // TODO: fetch based on map bounds
-  useEffect(() => {
-    const fetchMediaItems = async () => {
-      try {
-        const response = await fetch("/api/media");
-        if (!response.ok) {
-          throw new Error("Failed to fetch media items");
-        }
+  // Fetch media items all at once on load
+  // useEffect(() => {
+  //   const fetchMediaItems = async () => {
+  //     try {
+  //       const response = await fetch("/api/media");
+  //       if (!response.ok) {
+  //         throw new Error("Failed to fetch media items");
+  //       }
 
-        const data = await response.json();
-        const items: MediaItem[] = data.items ?? [];
-        setMediaItems(items);
-      } catch (error) {
-        console.error("Error fetching media items:", error);
-      }
+  //       const data = await response.json();
+  //       const items: MediaItem[] = data.items ?? [];
+  //       setMediaItems(items);
+  //     } catch (error) {
+  //       console.error("Error fetching media items:", error);
+  //     }
+  //   };
+
+  //   if (mapLoaded) {
+  //     fetchMediaItems();
+  //   }
+  // }, [mapLoaded]);
+
+  // Initial fetch on map load using initial bounds
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+    const bounds = map.current.getBounds();
+    if (bounds) fetchMediaItemsByBounds(bounds);
+  }, [mapLoaded, fetchMediaItemsByBounds]);
+
+  // Show "Search here" button when user moves the map
+  useEffect(() => {
+    if (!mapLoaded || !map.current) return;
+
+    const handleMoveEnd = () => {
+      setShowSearchHere(true);
     };
 
-    if (mapLoaded) {
-      fetchMediaItems();
-    }
+    map.current.on("moveend", handleMoveEnd);
+
+    return () => {
+      map.current?.off("moveend", handleMoveEnd);
+    };
   }, [mapLoaded]);
+
+  // Handle "Search here" button click
+  const handleSearchHere = () => {
+    if (!map.current) return;
+    const bounds = map.current.getBounds();
+    if (bounds) fetchMediaItemsByBounds(bounds);
+  };
 
   // Create and update markers
   useEffect(() => {
@@ -234,8 +300,9 @@ function MediaMap({
     Object.values(markers.current).forEach((marker) => marker.remove());
     markers.current = {};
 
-    mediaItems.forEach((item: MediaItem) => {
-      const { id, latitude, longitude, title, description, objectKey } = item;
+    mediaItems.forEach((item: MediaItemWithUrl) => {
+      const { id, latitude, longitude, title, description, objectKey, url } =
+        item;
       const lngLat: [number, number] = [
         parseFloat(longitude.toString()),
         parseFloat(latitude.toString()),
@@ -319,7 +386,8 @@ function MediaMap({
         onMarkerClick(id, {
           title,
           description: description || "",
-          contentUrl: objectKey,
+          objectKey: objectKey,
+          url: url,
         });
       });
 
@@ -377,6 +445,21 @@ function MediaMap({
             placeholder="Search for places"
           />
         </div>
+
+        {/* Search here button */}
+        {showSearchHere && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 mt-14">
+            <Button
+              onClick={handleSearchHere}
+              disabled={isSearching}
+              className="rounded-full cursor-pointer"
+              variant="outline"
+              // size="sm"
+            >
+              {isSearching ? "Searching..." : "Search this area"}
+            </Button>
+          </div>
+        )}
 
         <div
           ref={mapContainer}
