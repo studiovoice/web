@@ -17,16 +17,15 @@ export async function getDownloadUrl(objectName: string) {
     s3Client,
     new GetObjectCommand({
       Bucket: env.FILE_STORAGE_BUCKET,
-      // Key: objectName,
-      Key: `original/${objectName}`,
+      Key: objectName,
     }),
     { expiresIn: 3600 },
   );
 }
 
 export async function uploadFileToBucket(file: File, filename: string) {
-  // const Key = filename;
-  const Key = `original/${filename}`;
+  const Key = filename;
+  // const Bucket = env.AWS_S3_BUCKET_NAME;
   const Bucket = env.FILE_STORAGE_BUCKET;
 
   let res;
@@ -59,8 +58,7 @@ export async function getPresignedPostUrl(
 ) {
   return await createPresignedPost(s3Client, {
     Bucket: env.FILE_STORAGE_BUCKET,
-    // Key: objectName,
-    Key: `original/${objectName}`,
+    Key: objectName,
     Conditions: [
       ["content-length-range", 0, 1024 * 1024 * 50], // reject files over 50MB
       ["starts-with", "$Content-Type", contentType], // reject wrong content types (ensure content type matches what we expect)
