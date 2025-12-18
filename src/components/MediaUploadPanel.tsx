@@ -48,23 +48,30 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isUploading]);
 
+  useEffect(() => {
+    return () => {
+      if (filePreview) {
+        URL.revokeObjectURL(filePreview);
+      }
+    };
+  }, [filePreview]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
     setFile(selectedFile);
     setError(null);
 
-    if (selectedFile && selectedFile.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
+    if (selectedFile) {
+      setFilePreview(URL.createObjectURL(selectedFile));
     } else {
       setFilePreview(null);
     }
   };
 
   const removeFile = () => {
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview); // free memory
+    }
     setFile(null);
     setFilePreview(null);
     setTouched((prev) => ({ ...prev, file: true })); // they had a file and removed it
@@ -357,36 +364,22 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
                       <IconX className="h-4 w-4" />
                     </button>
                     <div className="flex flex-col items-center">
-                      <Image
-                        src={filePreview}
-                        alt="Preview"
-                        className="max-h-48 w-auto object-contain mb-2"
-                        width={192}
-                        height={192}
-                      />
-                      {file && (
-                        <p className="text-sm text-gray-700">{file.name}</p>
+                      {file?.type.startsWith("video/") ? (
+                        <video
+                          src={filePreview}
+                          controls
+                          className="max-h-48 w-full object-contain mb-2"
+                        />
+                      ) : (
+                        <Image
+                          src={filePreview}
+                          alt="Preview"
+                          className="max-h-48 w-auto object-contain mb-2"
+                          width={192}
+                          height={192}
+                        />
                       )}
-                    </div>
-                  </div>
-                ) : file && !file.type.startsWith("image/") ? (
-                  // Non-image file preview (video)
-                  <div className="mt-1 relative border-2 border-gray-300 rounded-lg p-4">
-                    <button
-                      type="button"
-                      onClick={removeFile}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-10 cursor-pointer"
-                      aria-label="Remove file"
-                    >
-                      <IconX className="h-4 w-4" />
-                    </button>
-                    <div className="flex flex-col items-center gap-2">
-                      <p className="text-sm text-gray-700 font-medium">
-                        {file.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(file.size / (1024 * 1024)).toFixed(2)} MB
-                      </p>
+                      <p className="text-sm text-gray-700">{file?.name}</p>
                     </div>
                   </div>
                 ) : (
