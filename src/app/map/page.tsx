@@ -1,4 +1,5 @@
 import { Metadata } from "next/types";
+import MapMediaLayout from "@/components/MapMediaLayout";
 
 export const metadata: Metadata = {
   title: "Media Map",
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function Map() {
-  return <></>;
+  return <MapMediaLayout />;
 }
