@@ -70,6 +70,7 @@ export interface MediaMapProps {
   hoveredItemId: string | null;
   onMarkerHover: (id: string | null) => void;
   viewMode: "full" | "split";
+  onSearchComplete?: (newItemIds: string[]) => void;
 }
 
 const MAPBOX_TOKEN = env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -84,6 +85,7 @@ function MediaMap({
   hoveredItemId,
   onMarkerHover,
   viewMode,
+  onSearchComplete,
 }: MediaMapProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -143,15 +145,21 @@ function MediaMap({
         if (!response.ok) throw new Error("Failed to fetch media items");
 
         const data = await response.json();
-        setMediaItems(data.items ?? []);
+        const newItems: MediaItemWithUrl[] = data.items ?? [];
+
+        setMediaItems(newItems);
         setShowSearchHere(false);
+
+        // Notify parent which IDs are now in view
+        const newItemIds = newItems.map((item) => item.id);
+        onSearchComplete?.(newItemIds);
       } catch (error) {
         console.error("Error fetching media items:", error);
       } finally {
         setIsSearching(false);
       }
     },
-    [],
+    [onSearchComplete],
   );
 
   // Initialize map
@@ -432,6 +440,12 @@ function MediaMap({
       center: [result.lng, result.lat],
       zoom: 14,
     });
+
+    // After the map finishes moving, fetch media items for the new area
+    // map.current?.once("moveend", () => {
+    //   const bounds = map.current?.getBounds();
+    //   if (bounds) fetchMediaItemsByBounds(bounds);
+    // });
   };
 
   return (

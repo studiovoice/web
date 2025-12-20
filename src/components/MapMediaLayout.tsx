@@ -149,6 +149,21 @@ export default function MapMediaLayout() {
     [],
   );
 
+  const handleSearchComplete = useCallback((newItemIds: string[]) => {
+    setSelectedMediaItems((prev) => {
+      const stillValid = prev.filter((id) => newItemIds.includes(id));
+      if (stillValid.length === 0) {
+        setActiveMediaItem(null);
+        setViewMode("full");
+      } else {
+        setActiveMediaItem((curr) =>
+          curr && newItemIds.includes(curr) ? curr : stillValid[0],
+        );
+      }
+      return stillValid;
+    });
+  }, []);
+
   return (
     <div className="flex container mx-auto p-2 md:p-0 mb-3">
       <div className="flex w-full gap-4 flex-col md:flex-row">
@@ -172,6 +187,7 @@ export default function MapMediaLayout() {
               hoveredItemId={hoveredItemId}
               onMarkerHover={handleItemHover}
               viewMode={viewMode}
+              onSearchComplete={handleSearchComplete}
             />
           </div>
         </div>
