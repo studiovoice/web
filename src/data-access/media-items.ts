@@ -72,7 +72,9 @@ export async function getMediaItemsByBounds(bounds: {
 }) {
   return await database.query.mediaItems.findMany({
     where: and(
-      eq(mediaItems.moderationStatus, "approved"), // only show approved items on the map
+      // TODO: uncomment moderation filter once we have a workflow in place
+      // Temporarily show all items regardless of moderation until we have a moderation workflow in place
+      // eq(mediaItems.moderationStatus, "approved"), // only show approved items on the map
       between(mediaItems.latitude, bounds.south, bounds.north),
       between(mediaItems.longitude, bounds.west, bounds.east),
     ),
