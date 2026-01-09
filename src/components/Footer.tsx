@@ -2,6 +2,14 @@ import Link from "next/link";
 import IconGitHub from "@/icons/IconGitHub";
 import IconInstagram from "@/icons/IconInstagram";
 import IconLinkedIn from "@/icons/IconLinkedIn";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function Footer() {
   return (
@@ -24,19 +32,61 @@ export default function Footer() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-5 sm:mt-0">
-          <Link
-            href="/terms"
-            className="underline hover:text-gray-800"
-          >
+          <Link href="/terms" className="underline hover:text-gray-800">
             Terms of Service
           </Link>
           <span className="hidden sm:inline">•</span>
-          <Link
-            href="/privacy"
-            className="underline hover:text-gray-800"
-          >
+          <Link href="/privacy" className="underline hover:text-gray-800">
             Privacy Policy
           </Link>
+          <span className="hidden sm:inline">•</span>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="underline hover:text-gray-800 text-left sm:text-right cursor-pointer"
+              >
+                Contact Us
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Contact & Support</DialogTitle>
+                <DialogDescription>
+                  Reach out to us with any questions or issues.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <p className="font-semibold mb-1">Questions & feedback</p>
+                  <p className="text-sm">
+                    Send us an email at{" "}
+                    <a
+                      href="mailto:ttran.voice@gmail.com"
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      ttran.voice@gmail.com
+                    </a>
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">Bug reports</p>
+                  <p className="text-sm">
+                    If you&apos;ve found a bug, let us know through our{" "}
+                    <a
+                      href="https://forms.gle/SXVhXV2w5aUGDu7m7"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      bug report form
+                    </a>
+                    . Your feedback helps us improve the platform!
+                  </p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
