@@ -15,8 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VOICE Platform",
-  description: "",
+  title: {
+    default: "VOICE Platform",
+    template: "%s | VOICE",
+  },
+  description:
+    "VOICE is a 501(c)(3) nonprofit organization that works at the intersection of architecture, urban design, social science, and technology to promote and advocate for social justice in conflicted areas.",
 };
 
 export default function RootLayout({

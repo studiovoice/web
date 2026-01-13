@@ -5,7 +5,7 @@ import IconExternal from "@/icons/IconExternal";
 
 export const metadata: Metadata = {
   title: "About VOICE",
-  description: "The mission and team behind the VOICE Platform",
+  description: "The mission and team behind the VOICE Platform.",
   alternates: {
     canonical: "/about",
   },
