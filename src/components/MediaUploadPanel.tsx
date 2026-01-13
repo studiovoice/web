@@ -9,6 +9,11 @@ import {
   getPresignedUploadUrlAction,
   createMediaItemAction,
 } from "@/actions/media-items";
+import {
+  MAX_UPLOAD_SIZE_IN_MB,
+  MAX_UPLOAD_SIZE,
+  ALLOWED_FILE_TYPES,
+} from "@/app-config";
 
 interface MediaUploadPanelProps {
   location: { lat: number; lng: number };
@@ -34,6 +39,7 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
   const [customTag, setCustomTag] = useState("");
   const [capturedAt, setCapturedAt] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [touched, setTouched] = useState({ title: false, file: false });
 
   // Warn user if they try to leave while uploading
@@ -58,14 +64,37 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
-    setFile(selectedFile);
-    setError(null);
 
-    if (selectedFile) {
-      setFilePreview(URL.createObjectURL(selectedFile));
-    } else {
+    if (!selectedFile) {
+      setFile(null);
       setFilePreview(null);
+      return;
     }
+
+    if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
+      setFileError(
+        "Unsupported file type. Please upload JPG, PNG, WEBP, MP4, or MOV.",
+      );
+      e.target.value = ""; // reset the input
+      return;
+    }
+
+    if (selectedFile.size > MAX_UPLOAD_SIZE) {
+      setFileError(`File exceeds ${MAX_UPLOAD_SIZE_IN_MB}MB limit.`);
+      e.target.value = ""; // reset the input
+      return;
+    }
+
+    setFile(selectedFile);
+    setFileError(null);
+    if (filePreview) URL.revokeObjectURL(filePreview); // free memory from previous preview
+    setFilePreview(URL.createObjectURL(selectedFile));
+
+    // if (selectedFile) {
+    //   setFilePreview(URL.createObjectURL(selectedFile));
+    // } else {
+    //   setFilePreview(null);
+    // }
   };
 
   const removeFile = () => {
@@ -74,6 +103,7 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
     }
     setFile(null);
     setFilePreview(null);
+    setFileError(null);
     setTouched((prev) => ({ ...prev, file: true })); // they had a file and removed it
     const fileInput = document.getElementById("file") as HTMLInputElement;
     if (fileInput) fileInput.value = "";
@@ -422,10 +452,13 @@ function MediaUploadPanel({ location, onClose }: MediaUploadPanelProps) {
                     </div>
                   </div>
                 )}
-                {touched.file && !file && (
+                {touched.file && !file && !fileError && (
                   <p className="text-sm text-red-500 mt-1">
                     Please select a file
                   </p>
+                )}
+                {fileError && (
+                  <p className="text-sm text-red-500 mt-1">{fileError}</p>
                 )}
               </div>
             )}

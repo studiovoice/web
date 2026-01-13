@@ -60,7 +60,7 @@ function MediaGalleryPanel({
 
   const getMimeType = useCallback((url: string) => {
     if (url.endsWith(".mp4")) return "video/mp4";
-    if (url.endsWith(".mov")) return "video/quicktime";
+    if (url.endsWith(".mov")) return "video/mp4"; // treat mov as mp4 for better browser compatibility (instead of using "video/quicktime")
     return "";
   }, []);
 

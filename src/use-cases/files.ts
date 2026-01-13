@@ -1,6 +1,7 @@
 import {
   getPresignedPostUrl,
 } from "@/lib/files";
+import { MAX_UPLOAD_SIZE_IN_MB, MAX_UPLOAD_SIZE } from "@/app-config";
 import { randomUUID } from "crypto";
 import { PublicError } from "@/use-cases/errors";
 
@@ -12,8 +13,8 @@ const MIME_TO_EXTENSION: Record<string, string[]> = {
   "video/quicktime": ["mov"],
 };
 
-const MAX_UPLOAD_SIZE_IN_MB = 50;
-const MAX_UPLOAD_SIZE = 1024 * 1024 * MAX_UPLOAD_SIZE_IN_MB; // 50MB
+// const MAX_UPLOAD_SIZE_IN_MB = 50;
+// const MAX_UPLOAD_SIZE = 1024 * 1024 * MAX_UPLOAD_SIZE_IN_MB; // 50MB
 
 export async function getPresignedUploadUrlUseCase({
   filename,
