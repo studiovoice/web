@@ -8,6 +8,7 @@ import {
   primaryKey,
   index,
   bigint,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -31,6 +32,18 @@ export const moderationStatusEnum = pgEnum("moderation_status", [
   "pending",
   "approved",
   "rejected",
+]);
+
+export const reportReasonEnum = pgEnum("report_reason", [
+  "spam",
+  "misinformation",
+  "other",
+]);
+
+export const reportStatusEnum = pgEnum("report_status", [
+  "pending",
+  "resolved",
+  "dismissed",
 ]);
 
 export const tags = pgTable("tags", {
@@ -104,7 +117,47 @@ export const mediaItemTags = pgTable(
   (table) => [primaryKey({ columns: [table.mediaItemId, table.tagId] })],
 );
 
-// TODO: add reports table for users to report inappropriate media items
+export const reports = pgTable(
+  "reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    // Timestamps
+    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+
+    // The media item being reported
+    mediaItemId: uuid("media_item_id")
+      .notNull()
+      .references(() => mediaItems.id, { onDelete: "cascade" }),
+
+    // Reporter identity — nullable to support anonymous reports
+    reporterEmail: text("reporter_email"),
+
+    // Report details
+    reason: reportReasonEnum("reason").notNull(),
+    details: text("details"),
+
+    // Admin review
+    status: reportStatusEnum("status").notNull().default("pending"),
+    adminNote: text("admin_note"),
+    closedAt: timestamp("closed_at", { withTimezone: true, mode: "date" }),
+  },
+  (table) => [
+    index("reports_media_item_id_idx").on(table.mediaItemId),
+    index("reports_status_idx").on(table.status),
+    unique("reports_media_item_reporter_email_unique").on(
+      table.mediaItemId,
+      table.reporterEmail,
+    ),
+  ],
+);
+
 // TODO (MAYBE): add table for users to request to delete a media item
 // TODO: add admin users table for managing reported media items and user requests
 
@@ -119,6 +172,7 @@ export const tagsRelations = relations(tags, ({ many }) => ({
 
 export const mediaItemsRelations = relations(mediaItems, ({ many }) => ({
   tags: many(mediaItemTags),
+  reports: many(reports),
 }));
 
 export const mediaItemTagsRelations = relations(mediaItemTags, ({ one }) => ({
@@ -129,6 +183,13 @@ export const mediaItemTagsRelations = relations(mediaItemTags, ({ one }) => ({
   tag: one(tags, {
     fields: [mediaItemTags.tagId],
     references: [tags.id],
+  }),
+}));
+
+export const reportsRelations = relations(reports, ({ one }) => ({
+  mediaItem: one(mediaItems, {
+    fields: [reports.mediaItemId],
+    references: [mediaItems.id],
   }),
 }));
 
@@ -143,3 +204,5 @@ export type MediaItem = typeof mediaItems.$inferSelect;
 export type NewMediaItem = typeof mediaItems.$inferInsert;
 export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
+export type Report = typeof reports.$inferSelect;
+export type NewReport = typeof reports.$inferInsert;
