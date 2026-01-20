@@ -9,7 +9,9 @@ import IconMapPin from "@/icons/IconMapPin";
 import IconListBullet from "@/icons/IconListBullet";
 import IconArrowsOut from "@/icons/IconArrowsOut";
 import IconPlay from "@/icons/IconPlay";
+import IconFlag from "@/icons/IconFlag";
 import { Button } from "@/components/ui/button";
+import { ReportDialog } from "@/components/ReportDialog";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "single" | "list";
@@ -47,6 +49,8 @@ function MediaGalleryPanel({
   const [playingVideos, setPlayingVideos] = useState<{ [id: string]: boolean }>(
     {},
   );
+
+  const [reportingItemId, setReportingItemId] = useState<string | null>(null);
 
   const getActiveMediaItem = useCallback(() => {
     if (!activeMediaItem) return null;
@@ -112,6 +116,16 @@ function MediaGalleryPanel({
 
   return (
     <div className="flex flex-col h-full">
+      {reportingItemId && (
+        <ReportDialog
+          open={!!reportingItemId}
+          onOpenChange={(open) => {
+            if (!open) setReportingItemId(null);
+          }}
+          mediaItemId={reportingItemId}
+          mediaItemTitle={mediaItems[reportingItemId].title}
+        />
+      )}
       <div className="p-2 sm:p-3 flex items-center justify-end">
         {selectedMediaItems.length > 0 && (
           <div className="flex gap-2">
@@ -248,14 +262,24 @@ function MediaGalleryPanel({
                           <h3 className="text-lg sm:text-xl font-semibold">
                             {activeItem.title}
                           </h3>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center justify-between mt-3">
                             <span
                               className={cn(
-                                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground border",
+                                "inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground border",
                               )}
                             >
                               {isVideo ? "Video" : "Image"}
                             </span>
+
+                            <button
+                              onClick={() =>
+                                setReportingItemId(activeMediaItem)
+                              }
+                              className="shrink-0 flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors cursor-pointer"
+                              title="Report this item"
+                            >
+                              <IconFlag size={18} />
+                            </button>
                           </div>
                         </div>
 
@@ -329,11 +353,22 @@ function MediaGalleryPanel({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-gray-100 cursor-pointer"
+                              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-red-50 hover:text-red-500 text-muted-foreground cursor-pointer"
+                              onClick={() => setReportingItemId(item.id)}
+                              title="Report this item"
+                            >
+                              <IconFlag className="h-4 w-4" />
+                              <span className="sr-only">Report</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-gray-200 cursor-pointer"
                               onClick={() => {
                                 setActiveMediaItem(item.id);
                                 setViewMode("single");
                               }}
+                              title="Full screen this item"
                             >
                               <IconArrowsOut className="h-4 w-4" />
                               <span className="sr-only">View full</span>
@@ -341,8 +376,9 @@ function MediaGalleryPanel({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-red-100 cursor-pointer"
+                              className="h-6 w-6 sm:h-7 sm:w-7 rounded-full hover:bg-gray-200 cursor-pointer"
                               onClick={() => toggleItemSelection(item.id)}
+                              title="Remove this item"
                             >
                               <IconX className="h-4 w-4" />
                               <span className="sr-only">Remove</span>

@@ -8,18 +8,18 @@ import {
 } from "@/data-access/reports";
 import { reports, type NewReport } from "@/db/schema";
 
+export type SubmitReportInput = Pick<
+  NewReport,
+  "mediaItemId" | "reason" | "details" | "reporterEmail"
+>;
+
 // ---- USER-FACING ----
 
 /**
  * Submit a report for a media item.
  * Validates that "other" reasons include details before persisting.
  */
-export async function submitReport(
-  input: Pick<
-    NewReport,
-    "mediaItemId" | "reason" | "details" | "reporterEmail"
-  >,
-) {
+export async function submitReport(input: SubmitReportInput) {
   if (input.reason === "other" && !input.details?.trim()) {
     throw new Error('Please describe your reason when selecting "Other".');
   }
